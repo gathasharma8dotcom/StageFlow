@@ -1,66 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>StageFlow — Choreography Made Simple</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg: #0a0a0f;
-  --surface: #13131a;
-  --panel: #1a1a24;
-  --border: #2a2a3a;
-  --accent: #e8ff47;
-  --accent2: #ff4785;
-  --accent3: #47c8ff;
-  --text: #f0f0f8;
-  --muted: #6b6b8a;
-  --panel-w: 220px;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; overflow: hidden; }
-body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; display:flex; flex-direction:column; touch-action:none; }
 
-header {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:0 14px; height:52px;
-  background:var(--surface); border-bottom:1px solid var(--border);
-  flex-shrink:0; z-index:200; gap:8px;
-}
-.logo { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:3px; color:var(--accent); line-height:1; flex-shrink:0; }
-.logo small { color:var(--muted); font-size:9px; letter-spacing:2px; font-family:'DM Mono',monospace; display:block; margin-top:-2px; }
-.header-actions { display:flex; gap:6px; align-items:center; }
-
-.btn {
-  padding:6px 12px; border-radius:6px; border:1px solid var(--border);
-  background:transparent; color:var(--text); font-family:'DM Sans',sans-serif;
-  font-size:12px; font-weight:500; cursor:pointer; transition:all 0.15s;
-  display:flex; align-items:center; gap:5px; white-space:nowrap; user-select:none;
-}
-.btn:hover,.btn:active { background:var(--panel); border-color:var(--muted); }
-.btn.primary { background:var(--accent); color:#000; border-color:var(--accent); font-weight:700; }
-.btn.primary:hover,.btn.primary:active { background:#d4eb30; }
-.btn.active-mode { background:var(--panel); border-color:var(--accent3); color:var(--accent3); }
-.btn.sm { padding:5px 9px; font-size:11px; }
-
-.app-body { display:flex; flex:1; overflow:hidden; position:relative; }
-
-.panel {
-  width:var(--panel-w); background:var(--surface);
-  display:flex; flex-direction:column; flex-shrink:0;
-  overflow:hidden; transition:transform 0.28s cubic-bezier(.4,0,.2,1); z-index:100;
-}
-.left-panel { border-right:1px solid var(--border); }
-.right-panel { border-left:1px solid var(--border); }
-
-.panel-section { padding:12px 14px; border-bottom:1px solid var(--border); }
-.panel-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:10px; }
-
-.input-row { display:flex; align-items:center; gap:6px; margin-bottom:7px; }
-.input-row label { font-size:11px; color:var(--muted); width:44px; flex-shrink:0; }
-.input-row input[type=number],.input-row select {
-  flex:1; min-width:0; background:var(--bg); border:1px solid var(--border);
   border-radius:5px; color:var(--text); font-family:'DM Mono',monospace;
   font-size:11px; padding:5px 7px; outline:none;
 }
@@ -239,7 +177,7 @@ header {
       </div>
       <div class="input-row" id="wing-depth-row" style="display:none">
         <label>W.Depth</label>
-        <input type="number" id="wing-depth" value="8" min="2" max="50"> ft
+        <input type="number" id="wingdepth" value="8" min="2" max="50"> ft
       </div>
       <button class="btn sm" style="width:100%;justify-content:center;margin-top:6px" id="btn-apply-stage">APPLY STAGE</button>
     </div>
