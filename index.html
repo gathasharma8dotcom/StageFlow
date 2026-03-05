@@ -1,2 +1,822 @@
 # StageFlow
 Choreography Made Simple 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>StageFlow — Choreography Made Simple</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #13131a;
+  --panel: #1a1a24;
+  --border: #2a2a3a;
+  --accent: #e8ff47;
+  --accent2: #ff4785;
+  --accent3: #47c8ff;
+  --text: #f0f0f8;
+  --muted: #6b6b8a;
+  --panel-w: 220px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; }
+body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; display:flex; flex-direction:column; touch-action:none; }
+
+header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 14px; height:52px;
+  background:var(--surface); border-bottom:1px solid var(--border);
+  flex-shrink:0; z-index:200; gap:8px;
+}
+.logo { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:3px; color:var(--accent); line-height:1; flex-shrink:0; }
+.logo small { color:var(--muted); font-size:9px; letter-spacing:2px; font-family:'DM Mono',monospace; display:block; margin-top:-2px; }
+.header-actions { display:flex; gap:6px; align-items:center; }
+
+.btn {
+  padding:6px 12px; border-radius:6px; border:1px solid var(--border);
+  background:transparent; color:var(--text); font-family:'DM Sans',sans-serif;
+  font-size:12px; font-weight:500; cursor:pointer; transition:all 0.15s;
+  display:flex; align-items:center; gap:5px; white-space:nowrap; user-select:none;
+}
+.btn:hover,.btn:active { background:var(--panel); border-color:var(--muted); }
+.btn.primary { background:var(--accent); color:#000; border-color:var(--accent); font-weight:700; }
+.btn.primary:hover,.btn.primary:active { background:#d4eb30; }
+.btn.active-mode { background:var(--panel); border-color:var(--accent3); color:var(--accent3); }
+.btn.sm { padding:5px 9px; font-size:11px; }
+
+.app-body { display:flex; flex:1; overflow:hidden; position:relative; }
+
+.panel {
+  width:var(--panel-w); background:var(--surface);
+  display:flex; flex-direction:column; flex-shrink:0;
+  overflow:hidden; transition:transform 0.28s cubic-bezier(.4,0,.2,1); z-index:100;
+}
+.left-panel { border-right:1px solid var(--border); }
+.right-panel { border-left:1px solid var(--border); }
+
+.panel-section { padding:12px 14px; border-bottom:1px solid var(--border); }
+.panel-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:10px; }
+
+.input-row { display:flex; align-items:center; gap:6px; margin-bottom:7px; }
+.input-row label { font-size:11px; color:var(--muted); width:44px; flex-shrink:0; }
+.input-row input[type=number],.input-row select {
+  flex:1; min-width:0; background:var(--bg); border:1px solid var(--border);
+  border-radius:5px; color:var(--text); font-family:'DM Mono',monospace;
+  font-size:11px; padding:5px 7px; outline:none;
+}
+.input-row input:focus,.input-row select:focus { border-color:var(--accent); }
+.input-row input[type=checkbox] { width:15px; height:15px; accent-color:var(--accent); cursor:pointer; flex-shrink:0; }
+
+.color-row { display:flex; flex-wrap:wrap; gap:5px; margin-top:7px; }
+.color-swatch { width:20px; height:20px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:border-color 0.12s,transform 0.12s; }
+.color-swatch:hover,.color-swatch:active { transform:scale(1.25); }
+.color-swatch.active { border-color:white; }
+
+.add-dancer-row { display:flex; gap:6px; align-items:center; }
+.add-dancer-row input[type=text] {
+  flex:1; min-width:0; background:var(--bg); border:1px solid var(--border);
+  border-radius:5px; color:var(--text); font-family:'DM Sans',sans-serif;
+  font-size:12px; padding:6px 8px; outline:none;
+}
+.add-dancer-row input:focus { border-color:var(--accent); }
+.color-dot { width:14px; height:14px; border-radius:50%; border:1.5px solid var(--border); flex-shrink:0; }
+
+.dancers-list { flex:1; overflow-y:auto; padding:6px; }
+.dancers-list::-webkit-scrollbar { width:3px; }
+.dancers-list::-webkit-scrollbar-thumb { background:var(--border); }
+
+.dancer-item {
+  display:flex; align-items:center; gap:7px;
+  padding:6px 7px; border-radius:6px; cursor:pointer;
+  transition:background 0.1s; border:1px solid transparent; margin-bottom:2px;
+}
+.dancer-item:hover,.dancer-item.selected { background:var(--panel); border-color:var(--border); }
+.dancer-dot-sm { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+.dancer-item input.diname {
+  background:transparent; border:none; color:var(--text); font-size:11px;
+  font-family:'DM Sans',sans-serif; outline:none; flex:1; min-width:0;
+}
+.del-btn { opacity:0; background:none; border:none; color:var(--accent2); cursor:pointer; font-size:15px; padding:0 2px; line-height:1; transition:opacity 0.15s; flex-shrink:0; }
+.dancer-item:hover .del-btn { opacity:1; }
+
+.canvas-area {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  background:var(--bg); overflow:hidden; position:relative; padding:8px;
+}
+
+.stage-scroll { overflow:auto; max-width:100%; max-height:100%; display:flex; align-items:center; justify-content:center; }
+.stage-scroll::-webkit-scrollbar { width:4px; height:4px; }
+.stage-scroll::-webkit-scrollbar-thumb { background:var(--border); }
+
+.stage-wrapper { position:relative; box-shadow:0 0 60px rgba(232,255,71,0.06),0 0 0 1px var(--border); border-radius:3px; flex-shrink:0; }
+#stage-canvas { display:block; touch-action:none; }
+.stage-dim-label { text-align:center; font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); margin-top:6px; }
+
+.mode-badge {
+  position:absolute; top:10px; left:10px;
+  font-family:'DM Mono',monospace; font-size:9px; letter-spacing:1px;
+  padding:3px 9px; border-radius:20px; background:var(--panel);
+  border:1px solid var(--border); color:var(--muted); pointer-events:none; z-index:50;
+}
+.mode-badge.place { color:var(--accent); border-color:var(--accent); }
+.mode-badge.select { color:var(--accent3); border-color:var(--accent3); }
+
+.hint-bar {
+  position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
+  display:flex; gap:12px; font-family:'DM Mono',monospace; font-size:9px; color:var(--muted);
+  background:rgba(10,10,15,0.85); padding:5px 12px; border-radius:20px;
+  border:1px solid var(--border); white-space:nowrap; pointer-events:none;
+}
+.hint-bar kbd { background:var(--border); padding:1px 4px; border-radius:3px; font-size:8px; color:var(--text); }
+
+.selected-bar {
+  position:absolute; bottom:34px; left:50%; transform:translateX(-50%);
+  background:var(--panel); border:1px solid var(--border); border-radius:8px;
+  padding:6px 12px; display:flex; align-items:center; gap:8px; font-size:11px;
+  z-index:50; opacity:0; pointer-events:none; transition:opacity 0.2s; white-space:nowrap;
+}
+.selected-bar.visible { opacity:1; pointer-events:auto; }
+.selected-bar label { color:var(--muted); font-size:9px; font-family:'DM Mono',monospace; }
+.rot-display { font-family:'DM Mono',monospace; font-size:11px; color:var(--accent); min-width:36px; }
+
+.formations-list { flex:1; overflow-y:auto; padding:6px; }
+.formations-list::-webkit-scrollbar { width:3px; }
+.formations-list::-webkit-scrollbar-thumb { background:var(--border); }
+
+.animate-row { display:flex; gap:6px; align-items:center; padding:8px 12px; border-bottom:1px solid var(--border); }
+.speed-select { flex:1; background:var(--bg); border:1px solid var(--border); border-radius:5px; color:var(--text); font-family:'DM Mono',monospace; font-size:11px; padding:5px 7px; outline:none; }
+
+.formation-card {
+  background:var(--bg); border:1px solid var(--border); border-radius:7px;
+  padding:8px; margin-bottom:7px; cursor:pointer; transition:all 0.15s; position:relative;
+}
+.formation-card:hover { border-color:var(--muted); }
+.formation-card.active { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+.formation-preview { width:100%; height:60px; background:var(--panel); border-radius:4px; overflow:hidden; margin-bottom:7px; display:block; }
+.formation-name-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
+.formation-name-row input { background:transparent; border:none; color:var(--text); font-size:11px; font-weight:500; font-family:'DM Sans',sans-serif; outline:none; flex:1; }
+.formation-meta { font-size:10px; color:var(--muted); font-family:'DM Mono',monospace; }
+.formation-del { background:none; border:none; color:var(--muted); cursor:pointer; font-size:13px; opacity:0; transition:opacity 0.15s; line-height:1; }
+.formation-card:hover .formation-del { opacity:1; }
+.formation-card:hover .formation-del:hover { color:var(--accent2); }
+
+.toast {
+  position:fixed; bottom:20px; left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:var(--accent); color:#000; padding:9px 18px;
+  border-radius:8px; font-weight:700; font-size:12px;
+  transition:transform 0.3s cubic-bezier(.175,.885,.32,1.275);
+  z-index:9999; pointer-events:none;
+}
+.toast.show { transform:translateX(-50%) translateY(0); }
+
+.panel-toggle {
+  display:none; position:absolute; top:8px; z-index:150;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:6px; padding:6px 8px; cursor:pointer;
+  color:var(--text); font-size:16px; line-height:1;
+}
+.panel-toggle.left { left:8px; }
+.panel-toggle.right { right:8px; }
+
+@media (max-width:700px) {
+  .panel { position:absolute; top:0; bottom:0; box-shadow:4px 0 24px rgba(0,0,0,0.6); }
+  .left-panel { left:0; transform:translateX(-100%); }
+  .right-panel { right:0; transform:translateX(100%); }
+  .panel.open { transform:translateX(0) !important; }
+  .panel-toggle { display:flex; }
+  .hide-mobile { display:none !important; }
+  .hint-bar { display:none; }
+  .selected-bar { flex-wrap:wrap; max-width:90vw; }
+}
+@media (max-width:480px) {
+  :root { --panel-w:88vw; }
+  .logo small { display:none; }
+  header { padding:0 10px; height:48px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">StageFlow <small>CHOREOGRAPHY MADE SIMPLE</small></div>
+  <div class="header-actions">
+    <button class="btn hide-mobile" id="btn-select-mode">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 3l14 9-7 1-4 7z"/></svg> SELECT
+    </button>
+    <button class="btn hide-mobile" id="btn-place-mode">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="22"/><line x1="2" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="22" y2="12"/></svg> PLACE
+    </button>
+    <button class="btn primary" id="btn-save-formation">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg> SAVE
+    </button>
+  </div>
+</header>
+
+<div class="app-body">
+  <button class="panel-toggle left" id="toggle-left">☰</button>
+  <button class="panel-toggle right" id="toggle-right">⋮</button>
+
+  <!-- LEFT PANEL -->
+  <div class="panel left-panel" id="left-panel">
+    <div class="panel-section">
+      <div class="panel-label">Stage</div>
+      <div class="input-row"><label>Width</label><input type="number" id="stage-w" value="40" min="5" max="200"> ft</div>
+      <div class="input-row"><label>Depth</label><input type="number" id="stage-d" value="30" min="5" max="200"> ft</div>
+      <div class="input-row"><label>Shape</label>
+        <select id="stage-shape">
+          <option value="rect">Rectangle</option>
+          <option value="thrust">Thrust</option>
+          <option value="circle">Circle</option>
+          <option value="diamond">Diamond</option>
+        </select>
+      </div>
+      <div class="input-row">
+        <label>Wings</label>
+        <input type="checkbox" id="show-wings">
+        <span style="font-size:11px;color:var(--muted)">Show wings</span>
+      </div>
+      <div class="input-row" id="wing-depth-row" style="display:none">
+        <label>W.Depth</label>
+        <input type="number" id="wing-depth" value="8" min="2" max="50"> ft
+      </div>
+      <button class="btn sm" style="width:100%;justify-content:center;margin-top:6px" id="btn-apply-stage">APPLY STAGE</button>
+    </div>
+    <div class="panel-section" id="mobile-mode-section" style="display:none">
+      <div class="panel-label">Mode</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn sm" id="btn-select-mode-m" style="flex:1;justify-content:center">SELECT</button>
+        <button class="btn sm" id="btn-place-mode-m" style="flex:1;justify-content:center">PLACE</button>
+      </div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-label">Add Dancer</div>
+      <div class="add-dancer-row">
+        <div class="color-dot" id="selected-color-dot"></div>
+        <input type="text" id="dancer-name-input" placeholder="Name..." maxlength="20">
+        <button class="btn sm primary" id="btn-add-dancer">+</button>
+      </div>
+      <div class="color-row" id="color-palette"></div>
+    </div>
+    <div class="panel-label" style="padding:10px 14px 4px;border-top:1px solid var(--border)"><span id="dancer-count">0</span> DANCERS</div>
+    <div class="dancers-list" id="dancers-list"></div>
+  </div>
+
+  <!-- STAGE -->
+  <div class="canvas-area" id="canvas-area">
+    <div class="mode-badge select" id="mode-badge">SELECT MODE</div>
+    <div class="stage-scroll" id="stage-scroll">
+      <div>
+        <div class="stage-wrapper" id="stage-wrapper">
+          <canvas id="stage-canvas"></canvas>
+        </div>
+        <div class="stage-dim-label" id="stage-dim-label">40ft × 30ft</div>
+      </div>
+    </div>
+    <div class="selected-bar" id="selected-bar">
+      <label>FACING</label>
+      <span class="rot-display" id="rot-display">0°</span>
+      <button class="btn sm" id="rot-ccw">↺45°</button>
+      <button class="btn sm" id="rot-cw">↻45°</button>
+      <button class="btn sm" style="border-color:var(--accent2);color:var(--accent2)" id="btn-del-selected">✕</button>
+    </div>
+    <div class="hint-bar">
+      <span><kbd>S</kbd>Select</span>
+      <span><kbd>P</kbd>Place</span>
+      <span><kbd>Del</kbd>Remove</span>
+      <span><kbd>←/→</kbd>Rotate</span>
+      <span>Drag to move</span>
+      <span>Right-click=rotate</span>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel right-panel" id="right-panel">
+    <div class="panel-section">
+      <div class="panel-label">Formations</div>
+      <button class="btn sm" style="width:100%;justify-content:center" id="btn-new-formation">+ SAVE FORMATION</button>
+    </div>
+    <div class="animate-row">
+      <select class="speed-select" id="anim-speed">
+        <option value="1500">Cinematic 1.5s</option>
+        <option value="800">Slow 0.8s</option>
+        <option value="500" selected>Normal 0.5s</option>
+        <option value="250">Fast 0.25s</option>
+      </select>
+      <button class="btn sm" id="btn-animate">▶ GO</button>
+    </div>
+    <div class="formations-list" id="formations-list">
+      <div style="padding:16px 8px;text-align:center;color:var(--muted);font-size:11px;line-height:1.6">Save formations to store dancer positions &amp; directions</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+const S = {
+  stageW:40, stageD:30, stageShape:'rect',
+  wings:false, wingDepth:8,
+  mode:'select',
+  dancers:[], // {id,name,color,x,y,angle}
+  formations:[], // {id,name,snapshot}
+  selId:null,
+  activeFormation:null,
+  nextId:1,
+  color:'#e8ff47',
+  animating:false,
+};
+const COLORS=['#e8ff47','#ff4785','#47c8ff','#ff9f47','#b847ff','#47ff9f','#ff4747','#ffffff','#ffd447','#47ffee'];
+const PPF=13;
+
+// ═══════════════════════════════════════
+// STAGE DRAW
+// ═══════════════════════════════════════
+const canvas=document.getElementById('stage-canvas');
+const ctx=canvas.getContext('2d');
+const wrapper=document.getElementById('stage-wrapper');
+
+function ssz(){return{w:S.stageW*PPF,h:S.stageD*PPF};}
+
+function drawStage(){
+  const {w,h}=ssz();
+  canvas.width=w; canvas.height=h;
+  wrapper.style.width=w+'px'; wrapper.style.height=h+'px';
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle='#0e0e18'; ctx.fillRect(0,0,w,h);
+
+  ctx.save();
+  sPath(w,h);
+  ctx.fillStyle='#14141f'; ctx.fill();
+
+  // Grid
+  ctx.strokeStyle='rgba(255,255,255,0.032)'; ctx.lineWidth=1;
+  for(let x=0;x<=w;x+=PPF){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+  for(let y=0;y<=h;y+=PPF){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+  // Center lines
+  ctx.strokeStyle='rgba(255,255,255,0.07)'; ctx.setLineDash([4,5]);
+  ctx.beginPath();ctx.moveTo(w/2,0);ctx.lineTo(w/2,h);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,h/2);ctx.lineTo(w,h/2);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Stage border glow
+  ctx.save(); sPath(w,h);
+  ctx.strokeStyle='rgba(232,255,71,0.2)'; ctx.lineWidth=2; ctx.stroke();
+  ctx.restore();
+
+  // Wings
+  if(S.wings){
+    const wd=S.wingDepth*PPF;
+    wrapper.style.overflowX='visible';
+    ctx.save();
+    ctx.fillStyle='rgba(71,200,255,0.05)';
+    ctx.strokeStyle='rgba(71,200,255,0.3)';
+    ctx.lineWidth=1.5; ctx.setLineDash([5,4]);
+    ctx.fillRect(-wd,h*0.08,wd,h*0.84); ctx.strokeRect(-wd,h*0.08,wd,h*0.84);
+    ctx.fillRect(w,h*0.08,wd,h*0.84); ctx.strokeRect(w,h*0.08,wd,h*0.84);
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(71,200,255,0.4)'; ctx.font='9px DM Mono,monospace'; ctx.textAlign='center';
+    ctx.fillText('WING L',-wd/2,h/2);
+    ctx.fillText('WING R',w+wd/2,h/2);
+    ctx.restore();
+  } else { wrapper.style.overflowX='hidden'; }
+
+  // Direction labels
+  ctx.fillStyle='rgba(107,107,138,0.5)'; ctx.font='9px DM Mono,monospace'; ctx.textAlign='center';
+  ctx.fillText('DOWNSTAGE',w/2,h-5);
+  ctx.fillText('UPSTAGE',w/2,13);
+  ctx.save(); ctx.translate(10,h/2); ctx.rotate(-Math.PI/2); ctx.fillText('STAGE L',0,0); ctx.restore();
+  ctx.save(); ctx.translate(w-10,h/2); ctx.rotate(Math.PI/2); ctx.fillText('STAGE R',0,0); ctx.restore();
+
+  document.getElementById('stage-dim-label').textContent=`${S.stageW}ft × ${S.stageD}ft${S.wings?' + wings':''}`;
+}
+
+function sPath(w,h){
+  ctx.beginPath();
+  if(S.stageShape==='rect'){ ctx.rect(0,0,w,h); }
+  else if(S.stageShape==='thrust'){ ctx.moveTo(0,0);ctx.lineTo(w,0);ctx.lineTo(w,h*0.65);ctx.lineTo(w*0.65,h);ctx.lineTo(w*0.35,h);ctx.lineTo(0,h*0.65);ctx.closePath(); }
+  else if(S.stageShape==='circle'){ ctx.ellipse(w/2,h/2,w/2-2,h/2-2,0,0,Math.PI*2); }
+  else if(S.stageShape==='diamond'){ ctx.moveTo(w/2,2);ctx.lineTo(w-2,h/2);ctx.lineTo(w/2,h-2);ctx.lineTo(2,h/2);ctx.closePath(); }
+}
+
+// ═══════════════════════════════════════
+// DANCER RENDERING (SVG arrows as bg)
+// ═══════════════════════════════════════
+const AR=14; // arrow radius
+
+function arrowSVG(color, angle, selected){
+  const sz=AR*2+(selected?12:4);
+  const cx=sz/2,cy=sz/2,r=AR;
+  const a=angle*Math.PI/180;
+  const tx=cx+r*Math.sin(a), ty=cy-r*Math.cos(a);
+  const b1x=cx+(r*0.58)*Math.sin(a+2.45), b1y=cy-(r*0.58)*Math.cos(a+2.45);
+  const b2x=cx+(r*0.58)*Math.sin(a-2.45), b2y=cy-(r*0.58)*Math.cos(a-2.45);
+  const ring=selected?`<circle cx="${cx}" cy="${cy}" r="${r+4}" fill="none" stroke="white" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.8"/>`:'';
+  const glow=selected?`filter="url(#g)"`:'';
+  return `data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${sz}" height="${sz}">
+    <defs><filter id="g"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    ${ring}
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" opacity="0.93" ${glow}/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,0.28)" stroke-width="1.5"/>
+    <polygon points="${tx},${ty} ${b1x},${b1y} ${b2x},${b2y}" fill="rgba(0,0,0,0.72)"/>
+    </svg>`
+  )}`;
+}
+
+// ═══════════════════════════════════════
+// DRAG STATE
+// ═══════════════════════════════════════
+let drag=null;
+
+function n2c(nx,ny){const{w,h}=ssz();return{x:nx*w,y:ny*h};}
+function c2n(px,py){const{w,h}=ssz();return{x:Math.max(0,Math.min(1,px/w)),y:Math.max(0,Math.min(1,py/h))};}
+function stageScale(){const r=canvas.getBoundingClientRect();return r.width/canvas.width;}
+
+function renderDancers(){
+  wrapper.querySelectorAll('.dn').forEach(n=>n.remove());
+  S.dancers.forEach(d=>{
+    const pos=n2c(d.x,d.y);
+    const sel=S.selId===d.id;
+    const sz=AR*2+(sel?12:4);
+    const el=document.createElement('div');
+    el.className='dn';
+    el.dataset.id=d.id;
+    el.title=d.name+(d.angle?' | '+Math.round(d.angle)+'°':'');
+    Object.assign(el.style,{
+      position:'absolute', width:sz+'px', height:sz+'px',
+      left:pos.x+'px', top:pos.y+'px',
+      transform:'translate(-50%,-50%)',
+      cursor:'grab', userSelect:'none',
+      zIndex:sel?20:10,
+      backgroundImage:`url("${arrowSVG(d.color,d.angle||0,sel)}")`,
+      backgroundSize:'cover', touchAction:'none',
+    });
+
+    const onDown=(e)=>{
+      e.preventDefault(); e.stopPropagation();
+      S.selId=d.id;
+      const cx=e.touches?e.touches[0].clientX:e.clientX;
+      const cy=e.touches?e.touches[0].clientY:e.clientY;
+      drag={id:d.id,cx,cy,nx:d.x,ny:d.y,moved:false};
+      renderDancers(); updateDancerList(); updateSelBar();
+    };
+    el.addEventListener('mousedown',onDown);
+    el.addEventListener('touchstart',onDown,{passive:false});
+
+    // Right-click to rotate 45°
+    el.addEventListener('contextmenu',e=>{
+      e.preventDefault();
+      d.angle=((d.angle||0)+45)%360;
+      renderDancers(); updateSelBar();
+    });
+
+    wrapper.appendChild(el);
+  });
+}
+
+document.addEventListener('mousemove',onMove);
+document.addEventListener('touchmove',onMove,{passive:false});
+document.addEventListener('mouseup',onUp);
+document.addEventListener('touchend',onUp);
+
+function onMove(e){
+  if(!drag) return;
+  const cx=e.touches?e.touches[0].clientX:e.clientX;
+  const cy=e.touches?e.touches[0].clientY:e.clientY;
+  const sc=stageScale();
+  const{w,h}=ssz();
+  const dx=(cx-drag.cx)/sc, dy=(cy-drag.cy)/sc;
+  if(Math.abs(dx)>2||Math.abs(dy)>2) drag.moved=true;
+  const d=S.dancers.find(x=>x.id===drag.id);
+  if(!d) return;
+  d.x=Math.max(0,Math.min(1,drag.nx+dx/w));
+  d.y=Math.max(0,Math.min(1,drag.ny+dy/h));
+  const el=wrapper.querySelector(`.dn[data-id="${d.id}"]`);
+  if(el){const p=n2c(d.x,d.y);el.style.left=p.x+'px';el.style.top=p.y+'px';}
+}
+
+function onUp(){
+  if(drag){drag=null;}
+}
+
+// Stage click → place
+function placeDancer(clientX,clientY){
+  if(S.mode!=='place') return;
+  const rect=wrapper.getBoundingClientRect();
+  const sc=stageScale();
+  const{x,y}=c2n((clientX-rect.left)/sc,(clientY-rect.top)/sc);
+  const name=document.getElementById('dancer-name-input').value.trim();
+  addDancer(name,S.color,x,y,0);
+}
+
+wrapper.addEventListener('click',e=>{
+  if(drag&&drag.moved) return;
+  if(e.target!==canvas&&!e.target.classList.contains('dn')) return;
+  if(e.target.classList.contains('dn')) return; // handled by dancer
+  placeDancer(e.clientX,e.clientY);
+});
+
+let touchPlacePending=false;
+wrapper.addEventListener('touchstart',e=>{touchPlacePending=true;},{passive:true});
+wrapper.addEventListener('touchend',e=>{
+  if(!touchPlacePending) return;
+  touchPlacePending=false;
+  if(drag&&drag.moved) return;
+  if(S.mode!=='place') return;
+  if(e.target.classList.contains('dn')) return;
+  const t=e.changedTouches[0];
+  placeDancer(t.clientX,t.clientY);
+});
+
+// ═══════════════════════════════════════
+// DANCER CRUD
+// ═══════════════════════════════════════
+function addDancer(name,color,nx,ny,angle){
+  const id=S.nextId++;
+  S.dancers.push({id,name:name||`D${id}`,color,x:nx,y:ny,angle:angle||0});
+  S.selId=id;
+  renderDancers(); updateDancerList(); updateSelBar();
+  showToast(`${name||`D${id}`} added`);
+}
+
+function removeDancer(id){
+  const d=S.dancers.find(x=>x.id===id);
+  S.dancers=S.dancers.filter(x=>x.id!==id);
+  if(S.selId===id) S.selId=null;
+  renderDancers(); updateDancerList(); updateSelBar();
+  if(d) showToast(`${d.name} removed`);
+}
+
+function updateDancerList(){
+  const list=document.getElementById('dancers-list');
+  document.getElementById('dancer-count').textContent=S.dancers.length;
+  list.innerHTML='';
+  S.dancers.forEach(d=>{
+    const item=document.createElement('div');
+    item.className='dancer-item'+(S.selId===d.id?' selected':'');
+    item.innerHTML=`<div class="dancer-dot-sm" style="background:${d.color}"></div><input class="diname" value="${esc(d.name)}" data-id="${d.id}"><button class="del-btn" data-id="${d.id}">×</button>`;
+    item.addEventListener('click',e=>{
+      if(e.target.classList.contains('del-btn')||e.target.classList.contains('diname')) return;
+      S.selId=d.id; renderDancers(); updateDancerList(); updateSelBar();
+    });
+    item.querySelector('.diname').addEventListener('change',e=>{
+      const dn=S.dancers.find(x=>x.id===d.id); if(dn){dn.name=e.target.value; renderDancers();}
+    });
+    item.querySelector('.del-btn').addEventListener('click',e=>{e.stopPropagation();removeDancer(d.id);});
+    list.appendChild(item);
+  });
+}
+
+function updateSelBar(){
+  const bar=document.getElementById('selected-bar');
+  const d=S.dancers.find(x=>x.id===S.selId);
+  if(d){bar.classList.add('visible');document.getElementById('rot-display').textContent=Math.round(d.angle||0)+'°';}
+  else{bar.classList.remove('visible');}
+}
+
+// ═══════════════════════════════════════
+// FORMATIONS + ANIMATION
+// ═══════════════════════════════════════
+function saveFormation(name){
+  const snap=S.dancers.map(d=>({id:d.id,name:d.name,color:d.color,x:d.x,y:d.y,angle:d.angle||0}));
+  const id=Date.now();
+  S.formations.push({id,name:name||`Formation ${S.formations.length+1}`,snapshot:snap});
+  S.activeFormation=id;
+  renderFormations();
+  showToast('Formation saved!');
+}
+
+function loadFormation(id,animate){
+  const f=S.formations.find(x=>x.id===id);
+  if(!f) return;
+  S.activeFormation=id;
+  if(!animate){
+    f.snapshot.forEach(s=>{const d=S.dancers.find(x=>x.id===s.id);if(d){d.x=s.x;d.y=s.y;d.angle=s.angle||0;}});
+    renderDancers(); renderFormations(); showToast(`Loaded: ${f.name}`); return;
+  }
+  const dur=parseInt(document.getElementById('anim-speed').value)||500;
+  const from={};
+  S.dancers.forEach(d=>{from[d.id]={x:d.x,y:d.y,angle:d.angle||0};});
+  const to={};
+  f.snapshot.forEach(s=>{to[s.id]={x:s.x,y:s.y,angle:s.angle||0};});
+  S.animating=true;
+  const t0=performance.now();
+  function ease(t){return t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+  function frame(now){
+    const t=Math.min(1,(now-t0)/dur),et=ease(t);
+    S.dancers.forEach(d=>{
+      const a=from[d.id],b=to[d.id];
+      if(a&&b){
+        d.x=a.x+(b.x-a.x)*et; d.y=a.y+(b.y-a.y)*et;
+        let da=b.angle-a.angle;
+        if(da>180)da-=360;if(da<-180)da+=360;
+        d.angle=a.angle+da*et;
+      }
+    });
+    renderDancers();
+    if(t<1){requestAnimationFrame(frame);}
+    else{S.animating=false;renderFormations();showToast(`▶ ${f.name}`);}
+  }
+  requestAnimationFrame(frame);
+}
+
+function deleteFormation(id){
+  S.formations=S.formations.filter(x=>x.id!==id);
+  if(S.activeFormation===id) S.activeFormation=null;
+  renderFormations();
+}
+
+function renderFormations(){
+  const list=document.getElementById('formations-list');
+  if(!S.formations.length){
+    list.innerHTML=`<div style="padding:16px 8px;text-align:center;color:var(--muted);font-size:11px;line-height:1.6">Save formations to store dancer positions &amp; directions</div>`;
+    return;
+  }
+  list.innerHTML='';
+  S.formations.forEach(f=>{
+    const card=document.createElement('div');
+    card.className='formation-card'+(S.activeFormation===f.id?' active':'');
+
+    // Canvas preview with arrows
+    const pc=document.createElement('canvas');
+    pc.width=180; pc.height=60;
+    pc.className='formation-preview';
+    const pctx=pc.getContext('2d');
+    pctx.fillStyle='#1a1a24'; pctx.fillRect(0,0,180,60);
+    f.snapshot.forEach(d=>{
+      const px=d.x*180, py=d.y*60, r=4.5;
+      const a=(d.angle||0)*Math.PI/180;
+      pctx.save(); pctx.translate(px,py);
+      pctx.beginPath(); pctx.arc(0,0,r,0,Math.PI*2);
+      pctx.fillStyle=d.color; pctx.globalAlpha=0.85; pctx.fill();
+      const tx=r*Math.sin(a),ty=-r*Math.cos(a);
+      const bx1=(r*0.6)*Math.sin(a+2.5),by1=-(r*0.6)*Math.cos(a+2.5);
+      const bx2=(r*0.6)*Math.sin(a-2.5),by2=-(r*0.6)*Math.cos(a-2.5);
+      pctx.beginPath(); pctx.moveTo(tx,ty); pctx.lineTo(bx1,by1); pctx.lineTo(bx2,by2); pctx.closePath();
+      pctx.fillStyle='rgba(0,0,0,0.75)'; pctx.globalAlpha=0.9; pctx.fill();
+      pctx.restore();
+    });
+
+    const nr=document.createElement('div'); nr.className='formation-name-row';
+    const ni=document.createElement('input'); ni.value=f.name;
+    ni.addEventListener('click',e=>e.stopPropagation());
+    ni.addEventListener('change',e=>{f.name=e.target.value;});
+    const db=document.createElement('button'); db.className='formation-del'; db.textContent='×';
+    db.addEventListener('click',e=>{e.stopPropagation();deleteFormation(f.id);});
+    nr.appendChild(ni); nr.appendChild(db);
+
+    const meta=document.createElement('div'); meta.className='formation-meta';
+    meta.textContent=`${f.snapshot.length} dancers`;
+
+    card.appendChild(pc); card.appendChild(nr); card.appendChild(meta);
+    card.addEventListener('click',()=>loadFormation(f.id,false));
+    list.appendChild(card);
+  });
+}
+
+// ═══════════════════════════════════════
+// COLOR PALETTE
+// ═══════════════════════════════════════
+function buildPalette(){
+  const p=document.getElementById('color-palette'); p.innerHTML='';
+  COLORS.forEach(c=>{
+    const sw=document.createElement('div');
+    sw.className='color-swatch'+(c===S.color?' active':'');
+    sw.style.background=c;
+    sw.addEventListener('click',()=>{
+      S.color=c;
+      document.getElementById('selected-color-dot').style.background=c;
+      p.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('active'));
+      sw.classList.add('active');
+    });
+    p.appendChild(sw);
+  });
+  document.getElementById('selected-color-dot').style.background=S.color;
+}
+
+// ═══════════════════════════════════════
+// MODE
+// ═══════════════════════════════════════
+function setMode(m){
+  S.mode=m;
+  const b=document.getElementById('mode-badge');
+  b.textContent=m==='place'?'PLACE MODE':'SELECT MODE';
+  b.className='mode-badge '+m;
+  document.getElementById('btn-place-mode').classList.toggle('active-mode',m==='place');
+  document.getElementById('btn-select-mode').classList.toggle('active-mode',m==='select');
+}
+
+// ═══════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT') return;
+  if(e.key==='s'||e.key==='S') setMode('select');
+  if(e.key==='p'||e.key==='P') setMode('place');
+  if((e.key==='Delete'||e.key==='Backspace')&&S.selId) removeDancer(S.selId);
+  const d=S.dancers.find(x=>x.id===S.selId);
+  if(d){
+    if(e.key==='ArrowRight'||e.key==='.'){d.angle=((d.angle||0)+15)%360;renderDancers();updateSelBar();}
+    if(e.key==='ArrowLeft'||e.key===','){d.angle=(((d.angle||0)-15)%360+360)%360;renderDancers();updateSelBar();}
+  }
+});
+
+// ═══════════════════════════════════════
+// UI WIRING
+// ═══════════════════════════════════════
+document.getElementById('btn-apply-stage').addEventListener('click',()=>{
+  S.stageW=parseInt(document.getElementById('stage-w').value)||40;
+  S.stageD=parseInt(document.getElementById('stage-d').value)||30;
+  S.stageShape=document.getElementById('stage-shape').value;
+  S.wings=document.getElementById('show-wings').checked;
+  S.wingDepth=parseInt(document.getElementById('wing-depth').value)||8;
+  drawStage(); renderDancers(); showToast('Stage updated');
+});
+document.getElementById('show-wings').addEventListener('change',e=>{
+  document.getElementById('wing-depth-row').style.display=e.target.checked?'flex':'none';
+});
+document.getElementById('btn-add-dancer').addEventListener('click',()=>{
+  addDancer(document.getElementById('dancer-name-input').value.trim(),S.color,0.5,0.5,0);
+});
+document.getElementById('dancer-name-input').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btn-add-dancer').click();});
+document.getElementById('btn-save-formation').addEventListener('click',()=>{if(!S.dancers.length){showToast('Add dancers first!');return;}saveFormation();});
+document.getElementById('btn-new-formation').addEventListener('click',()=>{if(!S.dancers.length){showToast('Add dancers first!');return;}saveFormation();});
+document.getElementById('btn-select-mode').addEventListener('click',()=>setMode('select'));
+document.getElementById('btn-place-mode').addEventListener('click',()=>setMode('place'));
+document.getElementById('btn-select-mode-m').addEventListener('click',()=>{setMode('select');closePanels();});
+document.getElementById('btn-place-mode-m').addEventListener('click',()=>{setMode('place');closePanels();});
+document.getElementById('rot-cw').addEventListener('click',()=>{const d=S.dancers.find(x=>x.id===S.selId);if(d){d.angle=((d.angle||0)+45)%360;renderDancers();updateSelBar();}});
+document.getElementById('rot-ccw').addEventListener('click',()=>{const d=S.dancers.find(x=>x.id===S.selId);if(d){d.angle=(((d.angle||0)-45)%360+360)%360;renderDancers();updateSelBar();}});
+document.getElementById('btn-del-selected').addEventListener('click',()=>{if(S.selId)removeDancer(S.selId);});
+document.getElementById('btn-animate').addEventListener('click',()=>{
+  if(!S.activeFormation){showToast('Select a formation first');return;}
+  if(S.animating){showToast('Animating...');return;}
+  loadFormation(S.activeFormation,true);
+});
+
+// Mobile panel toggles
+const lp=document.getElementById('left-panel'),rp=document.getElementById('right-panel');
+function closePanels(){lp.classList.remove('open');rp.classList.remove('open');}
+document.getElementById('toggle-left').addEventListener('click',e=>{e.stopPropagation();rp.classList.remove('open');lp.classList.toggle('open');});
+document.getElementById('toggle-right').addEventListener('click',e=>{e.stopPropagation();lp.classList.remove('open');rp.classList.toggle('open');});
+document.getElementById('canvas-area').addEventListener('click',closePanels);
+
+function handleResize(){
+  const mob=window.innerWidth<=700;
+  document.getElementById('mobile-mode-section').style.display=mob?'block':'none';
+}
+window.addEventListener('resize',handleResize);
+
+// ═══════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════
+let tt;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2000);}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+buildPalette();
+drawStage();
+setMode('select');
+handleResize();
+
+// Seed example dancers
+[
+  {name:'Alex',   color:'#e8ff47',x:.28,y:.65,angle:0},
+  {name:'Jordan', color:'#ff4785',x:.5, y:.75,angle:180},
+  {name:'Morgan', color:'#47c8ff',x:.72,y:.65,angle:270},
+  {name:'Taylor', color:'#ff9f47',x:.38,y:.38,angle:45},
+  {name:'Riley',  color:'#b847ff',x:.62,y:.38,angle:315},
+].forEach(e=>{S.dancers.push({id:S.nextId++,...e});});
+renderDancers();
+updateDancerList();
+
+// Seed two formations
+setTimeout(()=>{
+  saveFormation('Opening');
+  const f2=[{id:1,x:.15,y:.8,angle:0},{id:2,x:.38,y:.5,angle:90},{id:3,x:.62,y:.5,angle:270},{id:4,x:.85,y:.8,angle:180},{id:5,x:.5,y:.2,angle:180}];
+  f2.forEach(p=>{const d=S.dancers.find(x=>x.id===p.id);if(d){d.x=p.x;d.y=p.y;d.angle=p.angle;}});
+  renderDancers();
+  setTimeout(()=>{
+    saveFormation('V Shape');
+    // Restore opening
+    S.formations[0].snapshot.forEach(s=>{const d=S.dancers.find(x=>x.id===s.id);if(d){d.x=s.x;d.y=s.y;d.angle=s.angle;}});
+    renderDancers();
+    S.activeFormation=S.formations[0].id;
+    renderFormations();
+    setTimeout(()=>showToast('Tap "▶ GO" to animate between formations!'),400);
+  },40);
+},40);
+</script>
+</body>
+</html>
